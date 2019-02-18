@@ -1,0 +1,28 @@
+#useDynLib(fiberLD, .registration=TRUE)
+#exportPattern("^[[:alpha:]]+")
+
+export(fled, 
+    print.fled, plot.fled,
+    print.summary.fled, summary.fled,
+    dx.fibers, dx.mixture,
+    dy.fibers, dy.mixture, 
+    dw.fibers, dw.mixture,
+    dw.fibers.micro, dy.fibers.micro,
+    dx.fibers.micro
+    )
+
+
+importFrom(graphics, abline, plot, hist, lines, par)
+importFrom(stats, integrate, runif,optim, nlm,cor, var, qnorm, printCoefmat)
+importMethodsFrom(Matrix,rowSums)
+importFrom(VGAM, dgengamma.stacy)
+importFrom(parallel, parLapply, parSapply, makeCluster, detectCores, stopCluster)
+importFrom(doParallel, registerDoParallel)
+import(foreach)
+
+S3method(print, fled)
+S3method(print, summary.fled)
+S3method(summary, fled)
+S3method(plot, fled)
+
+
