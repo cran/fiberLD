@@ -1,12 +1,12 @@
 Encoding: UTF-8
 Package: fiberLD
-Version: 0.1-6
+Version: 0.1-7
 Author: Natalya Pya Arnqvist[aut, cre], 
-        Sara Sjöstedt de Luna [aut] 
+        Sara Sjöstedt de Luna [aut],
         Konrad Abramowicz [aut]
 Maintainer: Natalya Pya Arnqvist <nat.pya@gmail.com>
 Title: Fiber Length Determination
-Date: 2019-02-08
+Date: 2022-07-21
 Description: Routines for estimating tree fiber (tracheid) length distributions in the standing tree
            based on increment core samples. Two types of data can be used with the package, increment 
            core data measured by means of an optical fiber analyzer (OFA), e.g. such as the Kajaani 
@@ -20,11 +20,13 @@ Description: Routines for estimating tree fiber (tracheid) length distributions 
         (fines) that at least partially appear in the increment core, being the generalized gamma and 
         the log normal densities.
 Depends: R (>= 2.15.0)
-Imports: stats, graphics, Matrix, VGAM, parallel, foreach, doParallel
+Imports: stats, graphics, Matrix, VGAM, parallel, foreach, doParallel,
+        Rcpp (>= 0.12.7)
 Suggests: MASS
+LinkingTo: BH, Rcpp, RcppArmadillo
 License: GPL (>= 2)
 LazyLoad: yes
-NeedsCompilation: no
-Packaged: 2019-02-08 21:07:16 UTC; natalya
+NeedsCompilation: yes
+Packaged: 2022-07-21 09:19:05 UTC; natalya
 Repository: CRAN
-Date/Publication: 2019-02-18 10:30:10 UTC
+Date/Publication: 2022-07-21 10:00:02 UTC

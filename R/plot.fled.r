@@ -30,7 +30,11 @@ plot.fled <- function(x,select=NULL, density.scale="tree", rvec=NULL, xlab=NULL,
 
   plot.pdf.fiber <- function(x, rvec0, density.scale, xlab, main){
      if (is.null(xlab)) xlabel<- "fiber length (mm)" else xlabel <- xlab
-     if (is.null(main)) label<- substitute(paste("Fiber density in the ", density.scale),list(density.scale=density.scale))  else label <- main
+     if (is.null(main)) {
+         if (density.scale=="uncut.core")
+             label <- "Density of fibers that at least partially appear in the core"
+         else label<- substitute(paste("Fiber density in the ", density.scale),list(density.scale=density.scale)) 
+     } else label <- main
      if (is.null(rvec0)) rvec <- seq(1e-14,8-1e-5,length=300)
      if (x$model=="ggamma")  par0 <- x$par[5:7] else if (x$model=="lognorm") par0 <- x$par[4:5]                   
      if (density.scale=="tree")
@@ -77,7 +81,7 @@ plot.fled <- function(x,select=NULL, density.scale="tree", rvec=NULL, xlab=NULL,
 
   plot.pdf.fiber.micro <- function(x, rvec0, density.scale, xlab, main){
      if (is.null(xlab)) xlabel<- "fiber length (mm)" else xlabel <- xlab
-     if (is.null(main)) label<- substitute(paste("Fiber density in the ", density.scale),list(density.scale=density.scale))  else label <- main
+     if (is.null(main)) label<- substitute(paste("Fiber length density in the ", density.scale),list(density.scale=density.scale))  else label <- main
      if (is.null(rvec0)) rvec <- seq(1e-14,8-1e-5,length=300)
      par0 <- x$par                   
      if (density.scale=="tree")

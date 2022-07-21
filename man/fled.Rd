@@ -9,14 +9,14 @@
 \usage{
  fled(data=stop("No data supplied"), data.type="ofa", r=2.5, 
      model="ggamma", method="ML", parStart=NULL, fixed=NULL, 
-    optimizer=c("optim","L-BFGS-B","grad"),lower=-Inf,upper=Inf,...)
+    optimizer=c("optim","L-BFGS-B","grad"),lower=-Inf,upper=Inf,cluster=1,...)
 }
 \arguments{
    \item{data}{A numeric vector of cell lengths from increment cores.}
    \item{data.type}{type of data supplied: ''ofa'' (default) measured by an optical fiber analyser, or measured by ''microscopy'' (only the lengths of uncut fibers in the core). }
    \item{r}{radius of the increment core (default 2.5).} 
    \item{model}{if \code{model="ggamma"} then the distributions of the true lengths of the fibers (fines) that at least partially appear in the increment core are assumed to follow generalized gamma distributions; if \code{model="lognorm"} then log normal distributions are assumed on those fiber (fine) lengths.}
-  \item{method}{Currently only maximum likelihood method' 'ML'' is available.}
+  \item{method}{either \code{"ML"} (default) for the maximum likelihood method or \code{"SEM"} for a stochastic version of the EM algorithm. Note \code{"SEM"} works only with the log normal model and increment core data measured by an optical fiber analyzer (\code{"ofa"}).}
   \item{parStart}{numerical vector of starting values of parameters (or fixed values for ggamma model when \code{!is.null(fixed)}). The parameter values of the generalized gamma model should be given in the following order, 
  
 \eqn{(\epsilon, b_{fines},d_{fines},k_{fines},b_{fibers},d_{fibers},k_{fibers})}.
@@ -28,6 +28,8 @@ The parameter values of the log normal model are in the order
    \item{optimizer}{numerical optimization method used to minimize 'minus' the loglikelihood function of the observed data: 'optim', 'nlm' or 'nlm.fd' (nlm is based on finite-difference approximation of the derivatives). If optimizer==''optim'' then the second argument specifies the numerical method to be used in 'optim' (''Nelder-Mead'', ''BFGS'', ''CG'', ''L-BFGS-B'', ''SANN''. The third element of 
 \code{optimizer} indicates whether the finite difference approximation should be used ('fd') or analytical gradient ('grad') for the 'BFGS', 'CG' and 'L-BFGS-B' methods. The default is \code{optimizer=c("optim",} \code{"L-BFGS-B","grad")}. } 
    \item{lower, upper}{Bounds on the parameters for the "L-BFGS-B" method. The order of the bounds values has to be the same as the order of the \code{parStart}. Note that these bounds are on the original rather than transformed scale of the parameters used for optimization.} 
+   \item{cluster}{either '0' for no parallel computing to be used; or '1' (default) for one less than
+ the number of cores; or user-supplied cluster on which to do estimation. \code{cluster} can only be used with OFA analyzed data (a cluster here can be some cores of a single machine).}
    \item{...}{Further arguments to be passed to \code{optim}. }
 }
 \details{
@@ -110,16 +112,21 @@ d1 <- fled(data=cell.length,model="lognorm",r=6)
 summary(d1)
 plot(d1)
 x11()
-plot(d1,density.scale="uncut.core")
+plot(d1,select=2,density.scale="uncut.core")
 
 ## change the model to generalized gamma
 ## and set lower and upper bounds on the parameters for 
 ## the "L-BFGS-B" method ... 
 d2 <- fled(data=cell.length,model="ggamma",r=6,lower=c(.12,1e-3,.05,rep(.3,4)),
-      upper=c(.5,2,rep(7,5)))  
+      upper=c(.5,2,rep(7,5)),cluster=1) 
 d2
 summary(d2)
 plot(d2,select=1)
+
+## change "ML" default method to a stochastic version of the EM algorithm...
+d3 <- fled(data=cell.length,model="lognorm",r=6,method="SEM",cluster=0)
+summary(d3)
+
 }
 
 }

@@ -1,5 +1,5 @@
 ###################################################################
-## printing the results of the scam (clone of print.gam())...    ##
+## printing the results of the fled...    ##
 ###################################################################
 
 print.fled <- function (x,...) 

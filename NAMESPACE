@@ -1,4 +1,4 @@
-#useDynLib(fiberLD, .registration=TRUE)
+useDynLib(fiberLD, .registration=TRUE)
 #exportPattern("^[[:alpha:]]+")
 
 export(fled, 
@@ -12,6 +12,7 @@ export(fled,
     )
 
 
+importFrom(Rcpp, evalCpp)
 importFrom(graphics, abline, plot, hist, lines, par)
 importFrom(stats, integrate, runif,optim, nlm,cor, var, qnorm, printCoefmat)
 importMethodsFrom(Matrix,rowSums)

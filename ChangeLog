@@ -1,0 +1,10 @@
+
+0.1-7
+
+* fled: a stochastic version of the expectation-maximization method is added to fit the log normal model to the increment core data analyzed by OFAs (method="SEM"). 
+
+
+* fled: added 'cluster' input argument. A user can now specify whether parallel computing should be used for model parameters estimation; used with OFA analyzed data.
+
+
+* plot.fled: changed titles to some plots to make those more informative.

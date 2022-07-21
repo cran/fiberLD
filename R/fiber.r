@@ -606,13 +606,13 @@ loglik.y.grad <- function(cl,theta,x){
 ## end checking derivatives
 ##############################################
 
-fled.kajaani <- function(data=stop("No data supplied"), r, model="ggamma", method="ML", parStart=NULL, fixed=NULL,optimizer=c("optim","L-BFGS-B","grad"), lower=-Inf, upper=Inf, ...) {
+fled.kajaani <- function(data=stop("No data supplied"), r, model="ggamma", method="ML", parStart=NULL, fixed=NULL,optimizer=c("optim","L-BFGS-B","grad"), lower=-Inf, upper=Inf,cluster=0, ...) {
 ## function to estimate cell lengths from Kajaani data...
    
- ## if (!method%in%c("ML","SEM")) stop("unknown method for parameter estimation. 'ML' or 'SEM' methods are currently implemented")
-  if (!method%in%c("ML")) stop("unknown method for parameter estimation. Under the current version only 'ML' method is available")
- # if (model=="ggamma" & method=="SEM")
- #           stop("'SEM' method is possible only with 'lognorm' model.")
+  if (!method%in%c("ML","SEM")) stop("unknown method for parameter estimation. 'ML' or 'SEM' methods are currently implemented")
+ # if (!method%in%c("ML")) stop("unknown method for parameter estimation. Under the current version only 'ML' method is available")
+  if (model=="ggamma" & method=="SEM")
+            stop("'SEM' method is possible only with 'lognorm' model.")
   if (!(optimizer[1] %in% c("optim","nlm","nlm.fd")) )
           stop("unknown optimization method")
   if (model=="lognorm" & !is.null(fixed))
@@ -620,6 +620,19 @@ fled.kajaani <- function(data=stop("No data supplied"), r, model="ggamma", metho
   if (optimizer[1]!="optim" & !is.null(fixed))
            stop("currently fixing parameters is available only with 'optim'.")
   userStart <- FALSE  ## no user-defined starting values of model parameters
+
+  if (cluster==1){
+    if (parallel::detectCores()>1)  ## no point otherwise
+        cl <- parallel::makeCluster(parallel::detectCores()-1)
+      else cl <- NULL
+  } else if (cluster==0){
+       cl <- NULL
+  } else if (!is.null(cl)&&inherits(cluster,"cluster")){
+     cl <- cluster
+  } else {
+       warning("Supplied cluster is unknown - ignored.")
+       cl <- NULL
+     } 
 
 if (is.null(fixed) || sum(fixed)==0) { ## all parameters to be estimated
   if (!is.null(parStart)) {
@@ -688,9 +701,9 @@ if (is.null(fixed) || sum(fixed)==0) { ## all parameters to be estimated
 
   x <- data
 
-  if (detectCores()>1)  ## no point otherwise
-          cl <- makeCluster(detectCores()-1)
-  else cl <- NULL
+ # if (detectCores()>1)  ## no point otherwise
+ #         cl <- makeCluster(detectCores()-1)
+ # else cl <- NULL
   
   if (!userStart) {## get initial values of parameters ...
      if (!is.null(fixed) | sum(fixed)!=0){
@@ -866,106 +879,106 @@ if (method=="ML"){
   object$conv <- conv
   object$iterations <- iterations 
 } ## end method=="ML"
- #  else if (method=="SEM"){
- #     kk.x <- function(x,r){
- #       kk <- (8*r^2-3*x^2+30*x)/((pi*r^2+x*r)*sqrt(4*r^2-x^2))
- #       kk
- #     }
- #     n <- length(x)
- #     n.iter <- 200; ## 200
- #     n.med <- 50;
- #     antal <- 100 ## 100 for mcmc
-   
- #     if (!is.null(cl)) registerDoParallel(cl)
- #     rkoll <- p.uc(y=x,r=r)
- #     const <- kk.x(x=x,r=r)
- #     parStart <- thetaStart
-    ##  parStart[1] <- exp(thetaStart[1])/(1+exp(thetaStart[1])) 
-    ##  parStart[c(3,5)] <- exp(thetaStart[c(3,5)]); 
-    ##  parStart[c(2,4)] <- thetaStart[c(2,4)]
-    ##  th.fines <- parStart[2:3]
-     ## th.fibers <- parStart[4:5]
-     ## eps <- parStart[1]
-
- #     fin = x[x<0.5]
- #     fib = x[x>=0.5]
- #    n1 = length(fin);
- #     eps = n1/n
- #     th.fines <- c(mean(log(fin)),var(log(fin))^.5)
- #     th.fibers <- c(mean(log(fib)),var(log(fib))^.5)
-
- #     mu_fin_temp <- rep(0,n.iter)
- #     mu_fib_temp <- rep(0,n.iter)
- #     sigma_fin_temp <- rep(0,n.iter)
- #     sigma_fib_temp <- rep(0,n.iter)
- #     eps_temp <- rep(0,n.iter)
- #     randseeds1 <- matrix(sample(0:1e+15, n*n.iter,replace = TRUE), n.iter,n)
- #     randseeds2 <- matrix(sample(0:1e+15, n*n.iter,replace = TRUE), n.iter,n)
-
- #     for (i in 1:n.iter){ ## main EM loop...
- #       zvec <- rep(0,n)
- #       sumz <- 0
- #       sum_w.kv_fin <- matrix(0,n,2)
- #       sum_w.kv_fib <- matrix(0,n,2)
-
- #       fx_fin <- fyj.logN(x=x,th.j=th.fines)   
- #       fx_fib <- fyj.logN(x=x,th.j=th.fibers) 
-
- #       eps_diff <-1;
- #       while (eps_diff>1e-6){
- #          zvec <- eps*fx_fin/(eps*fx_fin+(1-eps)*fx_fib)
- #          sumz <- sum(zvec)
- #          eps_tem <- mean(zvec);
- #          eps_diff <- abs(eps-eps_tem);
- #          eps <- eps_tem;
- #       }   
- #    if (!is.null(cl)) {
- #         tmp <- foreach(j=1:n,  .combine='rbind') %dopar% {
- #                  tmp1 <- .Call("Simu1Cpp",x_=x[j], const_=const[j], mu_=th.fines[1], sigma_=th.fines[2], r_=r, r_koll_=rkoll[j], fx_fin_=fx_fin[j], zvec_=zvec[j], antal_=antal, rnd_seed_=randseeds1[i,j],PACKAGE="fiberLD") 
- #                  tmp2 <- .Call("Simu2Cpp",x_=x[j],const_=const[j], mu_=th.fibers[1], sigma_=th.fibers[2], r_=r, r_koll_=rkoll[j], fx_fib_=fx_fib[j], antal_=antal, rnd_seed_=randseeds2[i,j], PACKAGE="fiberLD")
- #                 c(tmp1, tmp2)
- #                 } 
- #         sum_w.kv_fin <- tmp[,1:2]
- #         sum_w.kv_fib <- tmp[,3:4] 
- #    } else{
- #            for (j in 1:n) {
-             ## Fines Simulations
- #             sum_w.kv_fin[j,] <- .Call("Simu1Cpp",x_=x[j], const_=const[j], mu_=th.fines[1], sigma_=th.fines[2], r_=r, r_koll_=rkoll[j], fx_fin_=fx_fin[j], zvec_=zvec[j], antal_=antal, rnd_seed_=randseeds1[i,j],PACKAGE="fiberLD") 
-             ## Fibers Simulation
- #            sum_w.kv_fib[j,] <- .Call("Simu2Cpp",x_=x[j],const_=const[j], mu_=th.fibers[1], sigma_=th.fibers[2], r_=r, r_koll_=rkoll[j], fx_fib_=fx_fib[j], antal_=antal, rnd_seed_=randseeds2[i,j], PACKAGE="fiberLD") 
- #           }
- #      }
+   else if (method=="SEM"){
+      kk.x <- function(x,r){
+        kk <- (8*r^2-3*x^2+30*x)/((pi*r^2+x*r)*sqrt(4*r^2-x^2))
+        kk
+      }
+      n <- length(x)
+      n.iter <- 200; ## 200
+      n.med <- 50;
+      antal <- 100 ## 100 for mcmc
   
- #        E1_fin <- sum(sum_w.kv_fin[,1]*zvec);
- #        E2_fin <- sum(sum_w.kv_fin[,2]*zvec);
- #        E1_fib <- sum(sum_w.kv_fib[,1]*(1-zvec));
- #        E2_fib <- sum(sum_w.kv_fib[,2]*(1-zvec));
+      if (!is.null(cl)) registerDoParallel(cl)
+      rkoll <- p.uc(y=x,r=r)
+      const <- kk.x(x=x,r=r)
+      parStart <- thetaStart
+      parStart[1] <- exp(thetaStart[1])/(1+exp(thetaStart[1])) 
+      parStart[c(3,5)] <- exp(thetaStart[c(3,5)]); 
+      parStart[c(2,4)] <- thetaStart[c(2,4)]
+      th.fines <- parStart[2:3]
+      th.fibers <- parStart[4:5]
+      eps <- parStart[1]
+
+      fin = x[x<0.5]
+      fib = x[x>=0.5]
+     n1 = length(fin);
+      eps = n1/n
+      th.fines <- c(mean(log(fin)),var(log(fin))^.5)
+      th.fibers <- c(mean(log(fib)),var(log(fib))^.5)
+
+      mu_fin_temp <- rep(0,n.iter)
+      mu_fib_temp <- rep(0,n.iter)
+      sigma_fin_temp <- rep(0,n.iter)
+      sigma_fib_temp <- rep(0,n.iter)
+      eps_temp <- rep(0,n.iter)
+      randseeds1 <- matrix(sample(0:1e+5, n*n.iter,replace = TRUE), n.iter,n)
+      randseeds2 <- matrix(sample(0:1e+5, n*n.iter,replace = TRUE), n.iter,n)
+
+      for (i in 1:n.iter){ ## main EM loop...
+        zvec <- rep(0,n)
+        sumz <- 0
+        sum_w.kv_fin <- matrix(0,n,2)
+        sum_w.kv_fib <- matrix(0,n,2)
+
+        fx_fin <- fyj.logN(x=x,th.j=th.fines)   
+        fx_fib <- fyj.logN(x=x,th.j=th.fibers) 
+
+        eps_diff <-1;
+        while (eps_diff>1e-6){
+           zvec <- eps*fx_fin/(eps*fx_fin+(1-eps)*fx_fib)
+           sumz <- sum(zvec)
+           eps_tem <- mean(zvec);
+           eps_diff <- abs(eps-eps_tem);
+           eps <- eps_tem;
+        }   
+     if (!is.null(cl)) {
+          tmp <- foreach(j=1:n,  .combine='rbind') %dopar% {
+                   tmp1 <- .Call("Simu1Cpp",x_=x[j], const_=const[j], mu_=th.fines[1], sigma_=th.fines[2], r_=r, r_koll_=rkoll[j], fx_fin_=fx_fin[j], zvec_=zvec[j], antal_=antal, rnd_seed_=randseeds1[i,j],PACKAGE="fiberLD") 
+                   tmp2 <- .Call("Simu2Cpp",x_=x[j],const_=const[j], mu_=th.fibers[1], sigma_=th.fibers[2], r_=r, r_koll_=rkoll[j], fx_fib_=fx_fib[j], antal_=antal, rnd_seed_=randseeds2[i,j], PACKAGE="fiberLD")
+                  c(tmp1, tmp2)
+                  } 
+          sum_w.kv_fin <- tmp[,1:2]
+          sum_w.kv_fib <- tmp[,3:4] 
+     } else{
+             for (j in 1:n) {
+             ## Fines Simulations
+              sum_w.kv_fin[j,] <- .Call("Simu1Cpp",x_=x[j], const_=const[j], mu_=th.fines[1], sigma_=th.fines[2], r_=r, r_koll_=rkoll[j], fx_fin_=fx_fin[j], zvec_=zvec[j], antal_=antal, rnd_seed_=randseeds1[i,j],PACKAGE="fiberLD") 
+             ## Fibers Simulation
+             sum_w.kv_fib[j,] <- .Call("Simu2Cpp",x_=x[j],const_=const[j], mu_=th.fibers[1], sigma_=th.fibers[2], r_=r, r_koll_=rkoll[j], fx_fib_=fx_fib[j], antal_=antal, rnd_seed_=randseeds2[i,j], PACKAGE="fiberLD") 
+            }
+       }
+  
+         E1_fin <- sum(sum_w.kv_fin[,1]*zvec);
+         E2_fin <- sum(sum_w.kv_fin[,2]*zvec);
+         E1_fib <- sum(sum_w.kv_fib[,1]*(1-zvec));
+         E2_fib <- sum(sum_w.kv_fib[,2]*(1-zvec));
     
          ## update parameters...
- #        mu_fin <- E1_fin/antal/sumz
- #        mu_fib <- E1_fib/antal/(n-sumz)
- #        sigma_fin <- (E2_fin/antal/sumz - mu_fin^2)^.5
- #        sigma_fib <- (E2_fib/antal/(n-sumz) - mu_fib^2)^.5
-    
+         mu_fin <- E1_fin/antal/sumz
+         mu_fib <- E1_fib/antal/(n-sumz)
+         sigma_fin <- (E2_fin/antal/sumz - mu_fin^2)^.5
+         sigma_fib <- (E2_fib/antal/(n-sumz) - mu_fib^2)^.5
+   
          ## save history...
- #        mu_fin_temp[i] <- mu_fin
- #        mu_fib_temp[i] <- mu_fib
- #        sigma_fin_temp[i] <- sigma_fin
- #        sigma_fib_temp[i] <- sigma_fib
- #        eps_temp[i] <- eps
- #     } ## end main EM loop
- #     mu_fin=mean(mu_fin_temp[(n.iter-n.med+1):n.iter])
- #     mu_fib=mean(mu_fib_temp[(n.iter-n.med+1):n.iter])
- #     sigma_fin=mean(sigma_fin_temp[(n.iter-n.med+1):n.iter])
- #     sigma_fib=mean(sigma_fib_temp[(n.iter-n.med+1):n.iter])
- #     ep=mean(eps_temp[(n.iter-n.med+1):n.iter])
- #     object$par <- par<- c(ep,mu_fin,sigma_fin, mu_fib, sigma_fib)
- #     names(object$par) <- c("eps","mu_fines", "sig_fines","mu_fibers", "sig_fibers")
- #     object$logpar <- object$par
- #     object$logpar[1] <- log(ep/(1-ep))
- #     object$logpar[c(3,5)] <- log(object$par[c(3,5)])
- #     object$loglik <- loglik.logN(cl=cl,theta=object$logpar,x=x, r=r)
- #  } ## end method=="SEM"
+         mu_fin_temp[i] <- mu_fin
+         mu_fib_temp[i] <- mu_fib
+         sigma_fin_temp[i] <- sigma_fin
+         sigma_fib_temp[i] <- sigma_fib
+         eps_temp[i] <- eps
+      } ## end main EM loop
+      mu_fin=mean(mu_fin_temp[(n.iter-n.med+1):n.iter])
+      mu_fib=mean(mu_fib_temp[(n.iter-n.med+1):n.iter])
+      sigma_fin=mean(sigma_fin_temp[(n.iter-n.med+1):n.iter])
+      sigma_fib=mean(sigma_fib_temp[(n.iter-n.med+1):n.iter])
+      ep=mean(eps_temp[(n.iter-n.med+1):n.iter])
+      object$par <- par<- c(ep,mu_fin,sigma_fin, mu_fib, sigma_fib)
+      names(object$par) <- c("eps","mu_fines", "sig_fines","mu_fibers", "sig_fibers")
+      object$logpar <- object$par
+      object$logpar[1] <- log(ep/(1-ep))
+      object$logpar[c(3,5)] <- log(object$par[c(3,5)])
+      object$loglik <- loglik.logN(cl=cl,theta=object$logpar,x=x, r=r)
+   } ## end method=="SEM"
 
   ## getting things after fit ...
    if (model=="lognorm"){
@@ -1191,7 +1204,7 @@ fled.micro <- function(data=stop("No data supplied"), r, model="ggamma", parStar
 
 ##########################################################
 
-fled <- function(data=stop("No data supplied"), data.type="ofa", r=2.5, model="ggamma", method="ML", parStart=NULL, fixed=NULL,optimizer=c("optim","L-BFGS-B","grad"), lower=-Inf, upper=Inf, ...){
+fled <- function(data=stop("No data supplied"), data.type="ofa", r=2.5, model="ggamma", method="ML", parStart=NULL, fixed=NULL,optimizer=c("optim","L-BFGS-B","grad"), lower=-Inf, upper=Inf,cluster=1, ...){
 ## function to estimate wood fiber length from increment cores...
 ## * data - a vector of cell length from increment cores
 ## * data.type - type of data supplied: "ofa" (default) or "microscopy"
@@ -1202,6 +1215,8 @@ fled <- function(data=stop("No data supplied"), data.type="ofa", r=2.5, model="g
 ## * fixed - TRUE/FALSE vector of seven used to specify if some parameters of ggamma model should be fixed
 ## * optimizer - numerical optimization method used to minimize 'minus' loglik: 'optim' or 'nlm' or 'nlm.fd' (nlm based on finite-difference approximation of the derivatives). If optimizer=="optim" then the second argument specifies the numerical method to be used in 'optim' ("Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN". The third element indicates whether the finite difference approximation should be used ("fd") or analytical gradient ("grad") for the "BFGS", "CG" and "L-BFGS-B" methods. 
 ## * lower, * upper - lower and upper bounds on parameters estimates for the "L-BFGS-B" method. these are supplied on original scale. the function then transform them to ensure positiveness and [0,1] restrictions...
+## * cluster is either '0' for no parallel computing to be used; or '1' (default) for one less than
+## the number of cores; or user-supplied cluster on which to do estimation; used for analyzing OFA data only.(a cluster here can be some cores of a single machine).
 
   if (!is.vector(data) || is.list(data)){
      data<- unlist(data); data <- as.vector(data,mode='numeric') 
@@ -1222,10 +1237,10 @@ fled <- function(data=stop("No data supplied"), data.type="ofa", r=2.5, model="g
   if (!data.type%in%c("ofa","microscopy")) stop("unknown type of data.")
   if (data.type=="microscopy" & !is.null(fixed))
            stop("fixing parameters is possible only with 'Kajjani' data and 'ggamma' model.")
-  
+    
   object <- list()
   if (data.type=="ofa") 
-     object <- fled.kajaani(data=data, r=r, model=model, method=method, parStart=parStart, fixed=fixed, optimizer=optimizer, lower=lower, upper=upper, ...)
+     object <- fled.kajaani(data=data, r=r, model=model, method=method, parStart=parStart, fixed=fixed, optimizer=optimizer, lower=lower, upper=upper, cluster=cluster,...)
   else 
      object <- fled.micro(data=data, r=r, model=model, parStart=parStart, optimizer=optimizer, lower=lower, upper=upper,...)
  
