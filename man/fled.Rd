@@ -107,8 +107,8 @@ plot(m2)
 
 \dontrun{ 
 ## using data measured by an optical fiber analyser
-data(cell.length) 
-d1 <- fled(data=cell.length,model="lognorm",r=6)
+data(ofa) 
+d1 <- fled(data=ofa,model="lognorm",r=2.5)
 summary(d1)
 plot(d1)
 x11()
@@ -117,15 +117,16 @@ plot(d1,select=2,density.scale="uncut.core")
 ## change the model to generalized gamma
 ## and set lower and upper bounds on the parameters for 
 ## the "L-BFGS-B" method ... 
-d2 <- fled(data=cell.length,model="ggamma",r=6,lower=c(.12,1e-3,.05,rep(.3,4)),
+d2 <- fled(data=ofa,model="ggamma",r=2.5,lower=c(.12,1e-3,.05,rep(.3,4)),
       upper=c(.5,2,rep(7,5)),cluster=1) 
 d2
 summary(d2)
 plot(d2,select=1)
 
+
 ## change "ML" default method to a stochastic version of the EM algorithm...
-d3 <- fled(data=cell.length,model="lognorm",r=6,method="SEM",cluster=0)
-summary(d3)
+d3 <- fled(data=ofa,model="lognorm",r=2.5,method="SEM",cluster=0)
+d3
 
 }
 

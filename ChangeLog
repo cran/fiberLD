@@ -1,6 +1,13 @@
 
-0.1-7
+0.1-8
+* ofa: changed simulated data of cell lengths of both cut and uncut fines and fibres from an increment core. The radius of the increment core is now 2.5 mm, and the values of the parameters of the generalized gamma distribution for fiber length are the same as for the microscopy data.
 
+* summary.fled, print.fled: small changes in the output of the results  
+
+* Makevars: small modification to remove some new compilation warnings from a recent upgrade of package BH
+
+
+0.1-7
 * fled: a stochastic version of the expectation-maximization method is added to fit the log normal model to the increment core data analyzed by OFAs (method="SEM"). 
 
 

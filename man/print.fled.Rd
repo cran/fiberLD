@@ -5,11 +5,12 @@
 \description{ The default print method for a \code{fled} object. 
 }
 \usage{
-\method{print}{fled}(x, ...)
+\method{print}{fled}(x,digits = max(3, getOption("digits") - 3),...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{ 
 \item{x, ...}{ fitted model objects of class \code{fled} as produced by \code{fled()}.}
+\item{digits}{controls the number of digits printed in the output.}
 }
 \details{ Prints the model, type of data, estimated model parameters, optimized value of the minus log likelihood and number of observations supplied. 
 

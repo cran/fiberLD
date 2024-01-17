@@ -2,7 +2,7 @@
 ## printing the results of the fled...    ##
 ###################################################################
 
-print.fled <- function (x,...) 
+print.fled <- function (x,digits = max(3, getOption("digits") - 3),...) 
 ## default print function for fled objects
 {
     cat("\n")
@@ -13,10 +13,13 @@ print.fled <- function (x,...)
     if (x$model=="ggamma")
        cat("Model: Generalized gamma\n", sep = "")
     else cat("Model: Log normal\n", sep = "")
+    par.table <- matrix(x$par, 1,length(x$par))
+    dimnames(par.table) <- list(c(" "),c(names(x$par)))
     if (!is.null(x$fixed)) 
         cat("\nFixed model parameters:\n", x$fixed, "\n")
-    cat("\nModel parameters:\n", formatC(x$par,digits = 4), "\n", sep = " ")
-    cat("\n'-'Loglik = ", round(x$loglik, digits=3), "  n = ", x$n, "\n",sep="")
+    cat("\nModel parameters:\n")
+    printCoefmat(par.table, digits = digits, na.print = "NA", ...)
+    cat("\nLoglik = ", round(-x$loglik, digits=3), "  n = ", x$n, "\n",sep="")
     cat("\n")
     invisible(x)
 }
@@ -64,8 +67,6 @@ gradEW.k <- function(th.fines, r, int.val, model, mu.fin,k){
   d
 } ## end gradEW.k
  
-
-
 
 summary.fled <- function (object,...) 
 ## summary method for fled object...
@@ -362,7 +363,7 @@ print.summary.fled <- function(x, digits = max(3, getOption("digits") - 3), ...)
      cat(" (Std.error = ",round(x$se.eps.tree,digits=3), ")", sep ="") 
    }
    cat("\n")
-   cat("\n'-'Loglik = ", round(x$loglik,digits=3), "   Sample size: n = ", x$n, "\n",sep="")
+   cat("\nLoglik = ", round(-x$loglik,digits=3), "   Sample size: n = ", x$n, "\n",sep="")
    if (x$method=="ML")
       cat("\nConvergence: ", x$conv, "\n", sep = "")
 

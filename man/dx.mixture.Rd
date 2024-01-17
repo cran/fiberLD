@@ -37,9 +37,9 @@ Sara \enc{Sjöstedt}{Sjostedt} de Luna, Konrad Abramowicz, Natalya Pya Arnqvist
 \examples{
 \dontrun{ 
  library(fiberLD)
- data(cell.length) 
- r <- 6
- d <- fled(data=cell.length,model="lognorm",r=r)
+ data(ofa) 
+ r <- 2.5
+ d <- fled(data=ofa,model="lognorm",r=r)
  x <- seq(0, 8,length=100)
  f1 <- dx.mixture(x=x, par=d$par,r=r, model="lognorm")
  plot(x,f1,type="l")
